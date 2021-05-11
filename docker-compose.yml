@@ -2,6 +2,9 @@ version: "3.7"
 services:
   app:
     build:
+      args:
+        user: mentesnotaveis
+        uid: 1000
       context: ./
       dockerfile: Dockerfile
     image: mentesnotaveis
@@ -11,7 +14,8 @@ services:
     volumes:
       - ./:/var/www
     networks:
-      - mentesnotaveis
+      default:
+        ipv4_address: 192.168.32.2
 
   db:
     image: mysql:5.7
@@ -24,7 +28,8 @@ services:
       SERVICE_TAGS: dev
       SERVICE_NAME: mysql
     networks:
-      - mentesnotaveis
+      default:
+        ipv4_address: 192.168.32.3
 
   nginx:
     image: nginx:alpine
@@ -35,8 +40,11 @@ services:
       - ./:/var/www
       - ./docker-compose/nginx:/etc/nginx/conf.d/
     networks:
-      - mentesnotaveis
+      default:
+        ipv4_address: 192.168.32.4
 
 networks:
-  mentesnotaveis:
-    driver: bridge
+  default:
+    external:
+      name: mentesnotaveis
+
