@@ -13,6 +13,7 @@ menu=([0]=sair [1]=migrations [2]=seed)
 docker network create mentesnotaveis --subnet=192.168.32.0/24
 docker-compose build app
 docker-compose up -d
+docker exec -it mentesnotaveis-app php artisan config:cache
 
 
 menuPrincipal() {
@@ -50,6 +51,7 @@ migrations() {
 
 seed() {
     docker exec -it mentesnotaveis-app bash -c "php artisan db:seed --class=StatesSeeder"
+    docker-compose exec app php artisan cache:clear
     menuPrincipal
 }
 menuPrincipal

@@ -21,10 +21,6 @@ class States extends Model
     *
     * @var array
     */
-   protected $fillable = ['users_id', 'state', 'uf'];
-
-   public function user() {
-       return $this->belongsTo(StateUser::class, 'state_id');
-   }
+   protected $fillable = ['user_id', 'state', 'uf'];
 
 }

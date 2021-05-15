@@ -15,7 +15,10 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::get('/', function () {
-    return view('welcome');
+    return 'teste aqui';
+    //return view('welcome');
 });
 
-Route::get('/user-created' , [UserController::class , 'store' ]);
+
+Route::get('/user/store', [UserController::class, 'store']);
+Route::get('/user/show', [UserController::class, 'show']);

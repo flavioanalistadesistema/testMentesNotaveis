@@ -21,5 +21,5 @@ class Cities extends Model
     *
     * @var array
     */
-   protected $fillable = ['users_id', 'city', 'district'];
+   protected $fillable = ['user_id', 'state_id', 'city', 'district'];
 }

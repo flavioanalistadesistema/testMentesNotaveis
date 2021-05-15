@@ -2,17 +2,35 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Address;
+use Illuminate\Support\Facades\DB;
+use App\Services\UserService;
+use Illuminate\Http\Request;
 use App\Models\AddressUser;
+use App\Models\StateUser;
+use App\Models\Address;
 use App\Models\Cities;
 use App\Models\States;
-use App\Models\StateUser;
 use App\Models\User;
-use Illuminate\Http\Request;
-use NunoMaduro\Collision\Adapters\Phpunit\State;
+use Exception;
+
+use function PHPUnit\Framework\isEmpty;
 
 class UserController extends Controller
 {
+    /**
+     * @var $userService
+     */
+    protected $userService;
+
+    /**
+     * @param UserService $userService
+     */
+    public function __construct(UserService $userService)
+    {
+        $this->userService = $userService;
+
+    }
+
     /**
      * Display a listing of the resource.
      *
@@ -41,38 +59,87 @@ class UserController extends Controller
      */
     public function store(Request $request)
     {
-        $reqUser = $request->all();
-        $user = new User();
-        $user->name = $reqUser['name'];
-        $user->email = $reqUser['email'];
-        $user->password = $reqUser['password'];
-        $user->save();
-        $userId = $user->id;
+        $data = $request->only([
+            'name',
+            'email',
+            'password'
+        ]);
 
-        $state = States::where('uf', $reqUser['uf'])->get();
-        $arrayState = json_decode($state, true);
-        $stateId = $arrayState[0]['id'];
+        $result = ['status' => 200];
 
-        $city = new Cities();
-        $city->users_id = $userId;
-        $city->city = $reqUser['city'];
-        $city->district = $reqUser['district'];
-        $city->save();
-        $cityId = $city->id;
+        try {
+            $result['data'] = $this->userService->saveUserData($data);
+        } catch (\Throwable $th) {
+            $result = [
+                'status' => 500,
+                'error' => $th->getMessage()
+            ];
+        }
 
-        $address = new Address();
-        $address->users_id = $userId;
-        $address->address = $reqUser['address'];
-        $address->number = $reqUser['number'];
-        $address->save();
-        $addressId = $address->id;
+        return response()->json($result, $result['status']);
 
-        $addressUser = new AddressUser();
-        $addressUser->users_id  = $userId;
-        $addressUser->state_id  = $stateId;
-        $addressUser->city_id   = $cityId;
-        $addressUser->address_id = $addressId;
-        $addressUser->save();
+        // DB::beginTransaction();
+
+        // $reqUser = $request->all();
+        // $user = new User();
+        // $user->name = $reqUser['name'];
+        // $user->email = $reqUser['email'];
+        // $user->password = $reqUser['password'];
+
+        // if ($user->save()) {
+        //     $userId = $user->id;
+
+        //     $state = States::where('uf', $reqUser['uf'])->get();
+        //     $arrayState = json_decode($state, true);
+        //     $stateId = $arrayState[0]['id'];
+        //     if ($stateId) {
+        //         $city = new Cities();
+        //         $city->user_id = $userId;
+        //         $city->state_id = $stateId;
+        //         $city->city = $reqUser['city'];
+        //         $city->district = $reqUser['district'];
+
+        //         if ($city->save()) {
+        //             $cityId = $city->id;
+
+        //             $address = new Address();
+        //             $address->user_id = $userId;
+        //             $address->state_id = $stateId;
+        //             $address->city_id = $cityId;
+        //             $address->address = $reqUser['address'];
+        //             $address->number = $reqUser['number'];
+
+        //             if ($address->save()) {
+        //                 $addressId = $address->id;
+        //                 $addressUser = new AddressUser();
+        //                 $addressUser->user_id  = $userId;
+        //                 $addressUser->state_id  = $stateId;
+        //                 $addressUser->city_id   = $cityId;
+        //                 $addressUser->address_id = $addressId;
+        //                 $resp = $addressUser->save();
+        //                     if (isEmpty($resp)) {
+        //                         throw new Exception('Seu registro foi cadastro com sucesso!!!');
+        //                     } else {
+        //                         DB::rollBack();
+        //                         throw new Exception('Não foi possivel registrar seu cadastro');
+        //                     }
+        //             } else {
+        //                 DB::rollBack();
+        //                 throw new Exception('Não foi possivel cadastrar o endereço');
+        //             }
+        //         } else {
+        //             DB::rollBack();
+        //             throw new Exception('Não foi possivel gravar a cidade');
+        //         }
+        //     }else {
+        //         DB::rollBack();
+        //         throw new Exception('Estado não existe');
+        //     }
+        // }
+        // else {
+        //     throw new Exception('Não foi possivel cadastrar Usuário');
+        // }
+
     }
 
     /**
@@ -81,9 +148,12 @@ class UserController extends Controller
      * @param  \App\Models\StateUser  $stateUser
      * @return \Illuminate\Http\Response
      */
-    public function show(StateUser $stateUser)
+    public function show()
     {
-        //
+        $user = AddressUser::with('user')->findOrFail(1);
+
+        $result = json_decode($user, true);
+        var_dump($result);
     }
 
     /**
